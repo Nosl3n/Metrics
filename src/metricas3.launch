@@ -1,0 +1,16 @@
+<launch>
+    <!-- Nodo trayectoria.py -->
+    <node pkg="metricas" type="trayectoria.py" name="trayectoria" output="screen">
+        <!-- Opcional: agregar parámetros o argumentos -->
+    </node>
+
+    <!-- Nodo metrica_smoothy.py -->
+    <node pkg="metricas" type="metrica_smoothy.py" name="metrica_smoothy" output="screen">
+        <!-- Opcional: agregar parámetros o argumentos -->
+    </node>
+
+    <!-- Nodo personas_distan.py -->
+    <node pkg="metricas" type="personas_distan.py" name="personas_distan" output="screen">
+        <!-- Opcional: agregar parámetros o argumentos -->
+    </node>
+</launch>
