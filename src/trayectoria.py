@@ -24,7 +24,7 @@ class MedidorTrayectoria:
         self.posiciones = []
 
         # Suscribimos al tópico de trayectorias
-        rospy.Subscriber('/move_base/NavfnROS/plan', Path, self.callback_trayectoria)
+        rospy.Subscriber('/move_base/GlobalPlanner/plan', Path, self.callback_trayectoria)
         
         # Timer para medir la longitud a intervalos regulares
         rospy.Timer(rospy.Duration(self.intervalo_tiempo), self.medir_longitud_trayectoria)

@@ -6,6 +6,7 @@ from std_msgs.msg import Float32MultiArray
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
 import time
+import os  # Para manejar rutas y archivos
 
 # Función para calcular la distancia entre dos puntos
 def euclidean_distance(x1, y1, x2, y2):
@@ -22,7 +23,7 @@ class DistanceCalculator:
 
         # Suscriptores a los tópicos
         rospy.Subscriber('group_positions', Float32MultiArray, self.positions_callback)
-        rospy.Subscriber('/move_base/NavfnROS/plan', Path, self.path_callback)
+        rospy.Subscriber('/move_base/GlobalPlanner/plan', Path, self.path_callback)
 
         # Publicador para el promedio de las distancias
         self.distance_pub = rospy.Publisher('average_distance', Float32MultiArray, queue_size=10)
@@ -62,7 +63,7 @@ class DistanceCalculator:
         distances = self.calculate_distances()
         if distances:
             average_distance = np.mean(distances)
-            rospy.loginfo("Average distance to the path: {}".format(average_distance))
+            rospy.loginfo("Average distance to the path: {:.4f}".format(average_distance))
 
             # Publicar el promedio de distancias
             avg_msg = Float32MultiArray()
@@ -89,18 +90,35 @@ class DistanceCalculator:
         self.save_data()
 
     def save_data(self):
-        # Guardar los datos en un archivo .txt
-        with open('average_distance_metrics.txt', 'w') as f:
-            f.write("Tiempo (s)\tDistancia Promedio\n")
+        """
+        Guarda los datos en un archivo .txt en la carpeta home del usuario.
+        Si el archivo no existe, lo crea automáticamente.
+        """
+        # Definir la ruta del archivo en la carpeta home
+        file_path = os.path.expanduser('~/average_distance_metrics.txt')
+        
+        # Verificar si el archivo ya existe
+        file_exists = os.path.isfile(file_path)
+        
+        # Abrir el archivo en modo de escritura (crear o sobrescribir)
+        with open(file_path, 'a' if file_exists else 'w') as f:
+            # Si es un archivo nuevo, agregar la cabecera
+            if not file_exists:
+                f.write("Tiempo (s)\tDistancia Promedio\n")
+            
+            # Escribir los datos registrados
             for data in self.distance_data:
                 f.write("{:.2f}\t{:.4f}\n".format(data[0], data[1]))
-        rospy.loginfo("Datos guardados en average_distance_metrics.txt")
+        
+        # Log para informar dónde se guardaron los datos
+        rospy.loginfo("Datos guardados en: {}".format(file_path))
 
 if __name__ == '__main__':
     try:
         calculator = DistanceCalculator()
         calculator.run()
     except rospy.ROSInterruptException:
-        # Asegura que los datos se guarden al interrumpir el nodo
-        calculator.save_data()
         pass
+    finally:
+        # Guardar los datos al cerrar el nodo
+        calculator.save_data()
